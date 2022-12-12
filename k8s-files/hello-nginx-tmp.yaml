@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-nginx-tmp
+  labels:
+    app: hello-nginx
+spec:
+  selector:
+    matchLabels:
+      app: hello-nginx
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: hello-nginx
+    spec:
+      containers:
+      - name: hello-nginx
+        image: 10.33.109.242/dummy/hello-nginx:latest
+        ports:
+        - containerPort: 80

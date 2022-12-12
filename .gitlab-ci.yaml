@@ -1,0 +1,57 @@
+stages:
+- build
+- deploy
+
+variables:
+  IMAGE_NGINX: "10.33.109.242/dummy/hello-nginx:latest"
+  IMAGE_PY: "10.33.109.242/dummy/hello-py:latest"
+  IMAGE_PALLETE: "10.33.109.242/dummy/pallete:latest"
+  IMAGE_PENGEDITMD: "10.33.109.242/dummy/pengedit-md:latest"
+  COMPOSE_FILE: "docker-compose.yaml"
+
+build-to-development:
+  stage: build
+  script:
+    - cd hello-nginx && docker build -t $IMAGE_NGINX -f Dockerfile .
+    - docker push $IMAGE_NGINX
+    - docker rmi -f $IMAGE_NGINX
+    - cd ../hello-py/ && docker build -t $IMAGE_PY -f Dockerfile .
+    - docker push $IMAGE_PY
+    - docker rmi -f $IMAGE_PY
+    - cd ../pallete/ && docker build -t $IMAGE_PALLETE -f Dockerfile .
+    - docker push $IMAGE_PALLETE
+    - docker rmi -f $IMAGE_PALLETE
+    - cd ../pengedit-md/ && docker build -t $IMAGE_PENGEDITMD -f Dockerfile .
+    - docker push $IMAGE_PENGEDITMD
+    - docker rmi -f $IMAGE_PENGEDITMD
+  only:
+    - main
+  tags:
+    - development
+
+deploy-to-development:
+  stage: deploy
+  script:
+    - docker compose -p dummy -f $COMPOSE_FILE down --rmi all
+    - docker compose -p dummy -f $COMPOSE_FILE up -d --build
+  only:
+    - main
+  tags:
+    - development
+
+deploy-to-production:
+  stage: deploy
+  script:
+    - scp -r k8s-files root@pod4-k8s-master:~/
+    - ssh root@pod4-k8s-master kubectl apply -f k8s-files/hello-nginx-tmp.yaml -f k8s-files/hello-py-tmp.yaml -f k8s-files/pallete-tmp.yaml -f k8s-files/pengedit-md-tmp.yaml
+    - ssh root@pod4-k8s-master sleep 2m
+    - ssh root@pod4-k8s-master kubectl delete -f k8s-files/hello-nginx.yaml -f k8s-files/hello-py.yaml -f k8s-files/pallete.yaml -f k8s-files/pengedit-md.yaml
+    - ssh root@pod4-k8s-master sleep 2m
+    - ssh root@pod4-k8s-master kubectl apply -f k8s-files/hello-nginx.yaml -f k8s-files/hello-py.yaml -f k8s-files/pallete.yaml -f k8s-files/pengedit-md.yaml
+    - ssh root@pod4-k8s-master sleep 2m
+    - ssh root@pod4-k8s-master kubectl delete -f k8s-files/hello-nginx-tmp.yaml -f k8s-files/hello-py-tmp.yaml -f k8s-files/pallete-tmp.yaml -f k8s-files/pengedit-md-tmp.yaml
+  only:
+    - /-RELEASE$/
+  tags:
+    - production
+

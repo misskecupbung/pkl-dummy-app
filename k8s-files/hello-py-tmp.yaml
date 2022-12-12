@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-py-tmp
+  labels:
+    app: hello-py
+spec:
+  selector:
+    matchLabels:
+      app: hello-py
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: hello-py
+    spec:
+      containers:
+      - name: hello-py
+        image: 10.33.109.242/dummy/hello-py:latest
+        ports:
+        - containerPort: 5000

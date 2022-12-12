@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pengedit-md
+  labels:
+    app: pengedit-md
+spec:
+  selector:
+    matchLabels:
+      app: pengedit-md
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: pengedit-md
+    spec:
+      containers:
+      - name: pengedit-md
+        image: 10.33.109.242/dummy/pengedit-md:latest
+        ports:
+        - containerPort: 3000

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-hello-py
+  labels:
+    run: svc-hello-py
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 5000
+    nodePort: 30102
+    protocol: TCP
+  selector:
+    name: hello-py
